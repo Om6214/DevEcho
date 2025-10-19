@@ -1,11 +1,11 @@
 import { BadRequestException, Body, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from 'src/dtos/createUser.dto';
+import { CreateUserDto } from 'src/auth/dtos/createUser.dto';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { LoginDto } from 'src/dtos/login.dto';
+import { LoginDto } from 'src/auth/dtos/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -65,7 +65,8 @@ export class AuthService {
         const token = await this.jwtService.signAsync(payload);
 
         return {
-            accessToken: token
+            accessToken: token,
+            user
         }
     }
 

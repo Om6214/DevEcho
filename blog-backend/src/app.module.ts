@@ -6,10 +6,15 @@ import { User } from './entities/user.entity';
 import { Post } from './entities/post.entity';
 import { Follow } from './entities/follow.entity';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
+import { ConfigModule } from '@nestjs/config';
+import { PostsModule } from './posts/posts.module';
+import { FollowModule } from './follow/follow.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
@@ -17,13 +22,14 @@ import { UserModule } from './user/user.module';
       username: 'root',
       password: 'root',
       database: 'blog',
-      entities: [User,Post,Follow],
+      entities: [User, Post, Follow],
       synchronize: true
     }),
     AuthModule,
-    UserModule
+    PostsModule,
+    FollowModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
