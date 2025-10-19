@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PostsModule } from './posts/posts.module';
 import { FollowModule } from './follow/follow.module';
+import { LikesModule } from './likes/likes.module';
+import { Likes } from './entities/like.entity';
 
 @Module({
   imports: [
@@ -22,12 +24,13 @@ import { FollowModule } from './follow/follow.module';
       username: 'root',
       password: 'root',
       database: 'blog',
-      entities: [User, Post, Follow],
+      entities: [User, Post, Follow,Likes],
       synchronize: true
     }),
     AuthModule,
     PostsModule,
-    FollowModule
+    FollowModule,
+    LikesModule
   ],
   controllers: [AppController],
   providers: [AppService],
