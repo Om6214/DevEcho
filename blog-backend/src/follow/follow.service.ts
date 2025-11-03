@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Follow } from 'src/entities/follow.entity';
-import { User } from 'src/entities/user.entity';
+import { Follow } from '../entities/follow.entity';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class FollowService {

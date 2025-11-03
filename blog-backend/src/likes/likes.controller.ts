@@ -1,7 +1,7 @@
 import { Controller, Post, Delete, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { LikesService } from './likes.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { type RequestWithUser } from 'src/posts/types/user.interface';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { type RequestWithUser } from '../posts/types/user.interface'
 
 @Controller('likes')
 export class LikesController {

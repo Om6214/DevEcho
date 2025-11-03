@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Likes } from 'src/entities/like.entity';
-import { Post } from 'src/entities/post.entity';
-import { User } from 'src/entities/user.entity';
+import { Likes } from '../entities/like.entity';
+import { Post } from '../entities/post.entity';
+import { User } from '../entities/user.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
