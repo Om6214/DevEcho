@@ -23,7 +23,7 @@ import { Likes } from './entities/like.entity';
       autoLoadEntities: true,
       synchronize: true,
       ssl: {
-        rejectUnauthorized: true,
+        rejectUnauthorized: false,
       },
       entities: [User, Post, Likes, Follow]
     }),
