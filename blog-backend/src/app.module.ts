@@ -18,14 +18,14 @@ import { Likes } from './entities/like.entity';
       isGlobal: true
     }),
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'root',
-      database: 'blog',
-      entities: [User, Post, Follow,Likes],
-      synchronize: true
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      autoLoadEntities: true,
+      synchronize: true,
+      ssl: {
+        rejectUnauthorized: true,
+      },
+      entities: [User, Post, Likes, Follow]
     }),
     AuthModule,
     PostsModule,
