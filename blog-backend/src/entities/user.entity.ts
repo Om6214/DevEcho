@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Post } from "./post.entity";
 import { Follow } from "./follow.entity";
+import { Comment } from "./comment.entity"
 
 @Entity()
 
@@ -29,7 +30,7 @@ export class User {
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @UpdateDateColumn({ type: 'timestamp' })
     updated_at: Date;
 
     @OneToMany(() => Post, (post) => post.user)
@@ -40,5 +41,8 @@ export class User {
 
     @OneToMany(() => Follow, (follow) => follow.following)
     followers: Follow[];
+
+    @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
+    comments: Comment[];
 
 }

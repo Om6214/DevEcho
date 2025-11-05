@@ -11,6 +11,8 @@ import { PostsModule } from './posts/posts.module';
 import { FollowModule } from './follow/follow.module';
 import { LikesModule } from './likes/likes.module';
 import { Likes } from './entities/like.entity';
+import { Comment } from './entities/comment.entity';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -18,19 +20,20 @@ import { Likes } from './entities/like.entity';
       isGlobal: true
     }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      autoLoadEntities: true,
-      synchronize: true,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-      entities: [User, Post, Likes, Follow]
+      type: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: 'root',
+      database: 'blog',
+      entities: [User, Post, Likes, Follow, Comment],
+      synchronize: true
     }),
     AuthModule,
     PostsModule,
     FollowModule,
-    LikesModule
+    LikesModule,
+    CommentsModule
   ],
   controllers: [AppController],
   providers: [AppService],
