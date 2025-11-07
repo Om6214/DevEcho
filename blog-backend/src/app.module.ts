@@ -33,7 +33,7 @@ import { CommentsModule } from './comments/comments.module';
     PostsModule,
     FollowModule,
     LikesModule,
-    CommentsModule
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

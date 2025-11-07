@@ -32,11 +32,11 @@ export default function SignupFormDemo() {
           <Input id="password" placeholder="••••••••" type="password" />
         </LabelInputContainer>
         <LabelInputContainer className="mb-8">
-          <Label htmlFor="twitterpassword">Your twitter password</Label>
+          <Label htmlFor="confirmpassword">Confirm Password</Label>
           <Input
-            id="twitterpassword"
+            id="confirmpassword"
             placeholder="••••••••"
-            type="twitterpassword"
+            type="password"
           />
         </LabelInputContainer>
 

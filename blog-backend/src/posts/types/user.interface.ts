@@ -5,5 +5,8 @@ export interface RequestWithUser extends Request {
     userId: string;
     username?: string;
     email?: string;
+    is_verified: boolean;
+    otp_code?: string;
+    otp_expiration?: string;
   };
 }
