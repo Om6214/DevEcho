@@ -13,7 +13,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
   imports: [
     ConfigModule, // use global one
     TypeOrmModule.forFeature([User]),
-    forwardRef(() => MailModule), // prevent circular dependency
+    forwardRef(() => MailModule),
     CloudinaryModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -26,6 +26,6 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule { }

@@ -12,4 +12,8 @@ export class CreateUserDto {
     @IsStrongPassword()
     @IsNotEmpty()
     readonly password: string;
+
+    @IsStrongPassword()
+    @IsNotEmpty()
+    readonly confirmPassword: string;
 }

@@ -15,30 +15,11 @@ async function bootstrap() {
     }),
   );
 
-  // const logger = new Logger('NestDebug');
-  // console.log('Starting Nest Debug Mode...');
-
-  // // ✅ Add this to log which provider fails
-  // process.on('uncaughtException', (err) => {
-  //   logger.error('❌ Uncaught Exception: ' + err.stack);
-  // });
-
-  // process.on('unhandledRejection', (reason: any) => {
-  //   logger.error('❌ Unhandled Rejection: ' + JSON.stringify(reason, null, 2));
-  // });
-
-  // const originalInstantiateClass = (app as any).container.injector.instantiateClass;
-  // (app as any).container.injector.instantiateClass = async function (...args) {
-  //   try {
-  //     return await originalInstantiateClass.apply(this, args);
-  //   } catch (e) {
-  //     const metatype = args?.[0]?.metatype;
-  //     const name = metatype?.name || JSON.stringify(metatype);
-  //     console.error(`❌ Error instantiating provider: ${name}`, e.message);
-  //     throw e;
-  //   }
-  // };
-
-  await app.listen(process.env.PORT ?? 3000);
+  app.enableCors({
+    origin: ['http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true
+  })
+  await app.listen(process.env.PORT ?? 5000);
 }
 bootstrap();

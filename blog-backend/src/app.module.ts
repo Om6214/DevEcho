@@ -13,6 +13,7 @@ import { LikesModule } from './likes/likes.module';
 import { Likes } from './entities/like.entity';
 import { Comment } from './entities/comment.entity';
 import { CommentsModule } from './comments/comments.module';
+import { UserapiModule } from './userapi/userapi.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CommentsModule } from './comments/comments.module';
     FollowModule,
     LikesModule,
     CommentsModule,
+    UserapiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

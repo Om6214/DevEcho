@@ -31,7 +31,16 @@ export class PostsService {
 
     async getAllPost(): Promise<Post[]> {
         return this.postRepo.find({
-            relations: ['user']
+            relations: ['user'],
+            order: { created_at: 'DESC' }
+        })
+    }
+
+    async getPublishedPost(): Promise<Post[]> {
+        return this.postRepo.find({
+            where: { published: true },
+            relations: ['user'],
+            order: { created_at: 'DESC' }
         })
     }
 
@@ -42,6 +51,20 @@ export class PostsService {
             order: { created_at: 'DESC' }
 
         });
+    }
+
+    async getPostById(postId: string): Promise<Post> {
+        const post = await this.postRepo.findOne({
+            where: {
+                id: postId,
+            },
+            relations: ['user', 'comments'],
+        })
+        if (!post) {
+            throw new BadRequestException('Post not found');
+        }
+
+        return post;
     }
 
     async updateUserPost(postId: string, userId: string, updatePostDto: UpdatePostDto): Promise<Post> {

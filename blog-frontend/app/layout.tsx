@@ -2,21 +2,22 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/custom_compo/Footer";
 import { NavbarDemo } from "@/custom_compo/Navbar";
-import { ThemeProvider } from "@/custom_compo/theme-provider";
-import {Open_Sans,Roboto_Mono} from "next/font/google"
+import { Providers } from "@/redux/Provider";
+import { Open_Sans, Roboto_Mono } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner"
+import AnimatedLayout from "./AnimatedLayout";
 
 const openSans = Open_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-opensans'
-})
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-opensans",
+});
 
 const robotoMono = Roboto_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-roboto-mono',
-})
-
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-roboto-mono",
+});
 
 export const metadata: Metadata = {
   title: "Blogs",
@@ -25,20 +26,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className={`${openSans.variable} ${robotoMono.variable} font-sans`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${openSans.variable} ${robotoMono.variable} font-sans`}
+      suppressHydrationWarning
+    >
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-        >
+        <Providers>
           <NavbarDemo />
-          {children}
-        </ThemeProvider>
+          <AnimatedLayout>{children}</AnimatedLayout>
+          <Toaster />
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

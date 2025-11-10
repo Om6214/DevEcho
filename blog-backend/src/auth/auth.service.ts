@@ -17,11 +17,15 @@ export class AuthService {
     private readonly userRepo: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
-  ) {}
+  ) { }
 
   async register(createUserDto: CreateUserDto) {
-    const { username, email, password } = createUserDto;
+    const { username, email, password, confirmPassword } = createUserDto;
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (password !== confirmPassword) {
+      throw new BadRequestException("Password is didn't matched");
+    }
 
     const existingUser = await this.userRepo.findOne({
       where: [{ username }, { email: normalizedEmail }],
@@ -48,6 +52,32 @@ export class AuthService {
     await this.mailService.sendOtpEmail(email, otp);
 
     return { message: 'OTP sent to your email. Please verify to continue.' };
+  }
+
+  async resendOtp(email: string) {
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await this.userRepo.findOne({
+      where: { email: normalizedEmail }
+    })
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    if (user.is_verified) {
+      throw new BadRequestException('User already verified');
+    }
+    const otp = randomInt(100000, 999999).toString();
+    const expiration = new Date(Date.now() + 5 * 60 * 1000);
+
+    user.otp_code = otp;
+    user.otp_expiration = expiration;
+
+    await this.userRepo.save(user);
+    await this.mailService.sendOtpEmail(user.email, otp);
+
+    return {
+      message: 'New OTP has been sent to your email.',
+    }
   }
 
   async verifyOtp(email: string, otp: string) {
@@ -82,13 +112,7 @@ export class AuthService {
     return { accessToken: token, user };
   }
 
-  async updateProfile(userId: string, updateUserDto: UpdateUserDto) {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new BadRequestException('User not found');
-
-    Object.assign(user, updateUserDto);
-    return this.userRepo.save(user);
-  }
+ 
 
   async verifyToken(token: string) {
     try {

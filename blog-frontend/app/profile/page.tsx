@@ -1,98 +1,85 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Edit, 
-  Eye, 
-  Calendar, 
-  Clock, 
-  Heart, 
-  MessageCircle, 
-  Share, 
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { getProfile, updateProfile } from '@/redux/slices/profileSlice';
+
+import {
+  Edit,
+  Eye,
+  Calendar,
+  Clock,
+  Heart,
+  MessageCircle,
   MoreHorizontal,
-  X,
-  Upload,
   Settings,
   FileText,
   Globe,
-  MapPin
+  MapPin,
+  Camera,
+  X,
+  User
 } from "lucide-react";
 
 export default function Profile() {
-  // Example user data
-  const [user, setUser] = useState({
-    name: "John Doe",
-    username: "johndoe",
-    email: "johndoe@example.com",
-    bio: "Frontend Developer | Blogger | Tech Enthusiast with passion for creating amazing user experiences and writing about modern web technologies.",
-    location: "Mumbai, India",
-    followers: 128,
-    following: 96,
-    joinedDate: "January 2023",
-    website: "https://johndoe.dev"
-  });
+  const dispatch = useAppDispatch();
+  const token = useAppSelector((state) => state.auth.token);
+  const userId = useAppSelector((state) => state.auth.user?.id);
+  const { profile, loading, error } = useAppSelector((state) => state.profile);
+
+  // Get blogs from Redux store if available, otherwise use empty array
+  const blogs = useAppSelector((state) => state.posts?.posts || []);
 
   const [isEditing, setIsEditing] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState<any>(null);
   const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("blogs");
 
-  // Sample blog data
-  const [blogs, setBlogs] = useState([
-    { 
-      id: 1, 
-      title: "Getting Started with React and TypeScript", 
-      image: "/api/placeholder/400/250?text=React+TS",
-      content: `# Getting Started with React and TypeScript\n\nReact and TypeScript are a powerful combination for building modern web applications...`,
-      excerpt: "Learn how to combine React with TypeScript for type-safe, maintainable code that scales beautifully.",
-      date: "2024-01-15",
-      readTime: "5 min read",
-      likes: 24,
-      comments: 8,
-      views: 156,
-      tags: ["react", "typescript", "webdev", "beginners"],
-      published: true
-    },
-    { 
-      id: 2, 
-      title: "Mastering CSS Grid: Complete Guide", 
-      image: "/api/placeholder/400/250?text=CSS+Grid",
-      content: `# Mastering CSS Grid: Complete Guide\n\nCSS Grid Layout is a powerful tool for creating complex, responsive web layouts...`,
-      excerpt: "Unlock the full potential of CSS Grid to create complex, responsive layouts with ease and precision.",
-      date: "2024-01-20",
-      readTime: "8 min read",
-      likes: 42,
-      comments: 12,
-      views: 289,
-      tags: ["css", "grid", "frontend", "layout"],
-      published: true
-    },
-    { 
-      id: 3, 
-      title: "Next.js 14: What's New and Amazing", 
-      image: "/api/placeholder/400/250?text=Next.js+14",
-      content: `# Next.js 14: What's New and Amazing\n\nNext.js 14 brings exciting new features that make building React applications even better...`,
-      excerpt: "Discover the latest features in Next.js 14 that will revolutionize how you build React applications.",
-      date: "2024-02-01",
-      readTime: "6 min read",
-      likes: 31,
-      comments: 5,
-      views: 198,
-      tags: ["nextjs", "react", "framework", "performance"],
-      published: false
-    },
-  ]);
+  // Form state for editing profile
+  const [editForm, setEditForm] = useState({
+    username: "",
+    name: "",
+    bio: "",
+    personal_link: ""
+  });
+
+  // File states
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string>("");
+  const [coverImagePreview, setCoverImagePreview] = useState<string>("");
+
+  const profileFileInputRef = useRef<HTMLInputElement>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize edit form when profile loads
+  useEffect(() => {
+    if (profile) {
+      setEditForm({
+        username: profile.username || "",
+        name: profile.name || "",
+        bio: profile.bio || "",
+        personal_link: profile.personal_link || ""
+      });
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (userId) {
+      dispatch(getProfile(userId));
+    }
+  }, [dispatch, userId]);
 
   const handleBlogClick = (blog: any) => {
     setSelectedBlog(blog);
@@ -100,15 +87,106 @@ export default function Profile() {
   };
 
   const handleSaveBlog = (updatedBlog: any) => {
-    setBlogs(blogs.map(blog => 
-      blog.id === updatedBlog.id ? updatedBlog : blog
-    ));
     setSelectedBlog(updatedBlog);
   };
 
   const handleDeleteBlog = (blogId: number) => {
-    setBlogs(blogs.filter(blog => blog.id !== blogId));
     setIsBlogModalOpen(false);
+  };
+
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImagePreview(previewUrl);
+    }
+  };
+
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCoverImage(file);
+      const previewUrl = URL.createObjectURL(file);
+      setCoverImagePreview(previewUrl);
+    }
+  };
+
+  const removeProfileImage = () => {
+    setProfileImage(null);
+    setProfileImagePreview("");
+    if (profileFileInputRef.current) {
+      profileFileInputRef.current.value = "";
+    }
+  };
+
+  const removeCoverImage = () => {
+    setCoverImage(null);
+    setCoverImagePreview("");
+    if (coverFileInputRef.current) {
+      coverFileInputRef.current.value = "";
+    }
+  };
+
+  const handleSaveProfile = () => {
+    const formData = new FormData();
+
+    if (editForm.username !== profile?.username) {
+      formData.append('username', editForm.username);
+    }
+    if (editForm.name !== profile?.name) {
+      formData.append('name', editForm.name);
+    }
+    if (editForm.bio !== profile?.bio) {
+      formData.append('bio', editForm.bio);
+    }
+    if (editForm.personal_link !== profile?.personal_link) {
+      formData.append('personal_link', editForm.personal_link);
+    }
+    if (profileImage) {
+      formData.append('profile_image', profileImage);
+    }
+    if (coverImage) {
+      formData.append('cover_image', coverImage);
+    }
+
+    if (formData.has('username') || formData.has('name') || formData.has('bio') || formData.has('personal_link') || profileImage || coverImage) {
+      dispatch(updateProfile(formData)).then(() => {
+        // Refresh profile data after update
+        if (userId) {
+          dispatch(getProfile(userId));
+        }
+        // Reset file states
+        setProfileImage(null);
+        setCoverImage(null);
+        setProfileImagePreview("");
+        setCoverImagePreview("");
+      });
+    }
+
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditForm({
+      username: profile?.username || "",
+      name: profile?.name || "",
+      bio: profile?.bio || "",
+      personal_link: profile?.personal_link || ""
+    });
+    // Reset file states
+    setProfileImage(null);
+    setCoverImage(null);
+    setProfileImagePreview("");
+    setCoverImagePreview("");
+    setIsEditing(false);
+  };
+
+  // Format date for joined date display
+  const formatJoinedDate = (dateString: string) => {
+    if (!dateString) return "Unknown";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
   };
 
   const BlogModal = () => (
@@ -129,24 +207,24 @@ export default function Profile() {
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
                 <Avatar>
-                  <AvatarImage src="/api/placeholder/40/40?text=JD" />
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={profile?.profile_image} />
+                  <AvatarFallback>{(profile?.username || "U").charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold">{user.name}</h3>
+                  <h3 className="font-semibold">{profile?.username || "User"}</h3>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="w-3 h-3" />
-                    <span>{selectedBlog.date}</span>
+                    <span>{selectedBlog.createdAt ? new Date(selectedBlog.createdAt).toLocaleDateString() : selectedBlog.date}</span>
                     <Clock className="w-3 h-3 ml-2" />
-                    <span>{selectedBlog.readTime}</span>
+                    <span>{selectedBlog.readTime || "5 min read"}</span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={selectedBlog.published}
-                  onCheckedChange={(checked) => 
-                    handleSaveBlog({...selectedBlog, published: checked})
+                  onCheckedChange={(checked) =>
+                    handleSaveBlog({ ...selectedBlog, published: checked })
                   }
                 />
                 <Label>{selectedBlog.published ? "Published" : "Draft"}</Label>
@@ -159,8 +237,8 @@ export default function Profile() {
               <Input
                 id="modal-title"
                 value={selectedBlog.title}
-                onChange={(e) => 
-                  handleSaveBlog({...selectedBlog, title: e.target.value})
+                onChange={(e) =>
+                  handleSaveBlog({ ...selectedBlog, title: e.target.value })
                 }
                 className="text-xl font-bold"
               />
@@ -171,8 +249,8 @@ export default function Profile() {
               <Textarea
                 id="modal-content"
                 value={selectedBlog.content}
-                onChange={(e) => 
-                  handleSaveBlog({...selectedBlog, content: e.target.value})
+                onChange={(e) =>
+                  handleSaveBlog({ ...selectedBlog, content: e.target.value })
                 }
                 rows={12}
                 className="resize-none font-mono text-sm"
@@ -181,8 +259,8 @@ export default function Profile() {
 
             {/* Actions */}
             <div className="flex justify-between pt-4 border-t">
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={() => {
                   if (confirm('Are you sure you want to delete this blog?')) {
                     handleDeleteBlog(selectedBlog.id);
@@ -224,36 +302,182 @@ export default function Profile() {
     </svg>
   );
 
+  if (loading && !profile) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8 flex justify-center">
+        <div className="text-center">Loading profile...</div>
+      </div>
+    );
+  }
+
+  if (error && !profile) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8 flex justify-center">
+        <div className="text-center text-destructive">Error loading profile: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-      {/* Profile Header */}
-      <Card className="border border-border shadow-lg">
-        <CardContent className="p-8">
+      {/* Profile Header with Cover Image */}
+      <Card className="border border-border shadow-lg overflow-hidden">
+        {/* Cover Image */}
+        <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
+          {isEditing ? (
+            <div className="relative w-full h-full">
+              {(coverImagePreview || profile?.cover_image) && (
+                <Image
+                  src={coverImagePreview || profile?.cover_image || ""}
+                  alt="Cover"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              )}
+              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    ref={coverFileInputRef}
+                    onChange={handleCoverImageChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => coverFileInputRef.current?.click()}
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    {coverImagePreview || profile?.cover_image ? 'Change Cover' : 'Upload Cover'}
+                  </Button>
+                  {(coverImagePreview || profile?.cover_image) && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={removeCoverImage}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : profile?.cover_image ? (
+            <Image
+              src={profile.cover_image}
+              alt="Cover"
+              fill
+              className="object-cover"
+              priority
+            />
+          ) : null}
+        </div>
+
+        <CardContent className="p-8 pt-16">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Avatar Section */}
-            <div className="flex flex-col items-center space-y-4">
-              <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
-                <AvatarImage src="/api/placeholder/128/128?text=JD" alt="User Avatar" />
-                <AvatarFallback className="text-2xl">{user.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <Button variant="outline" size="sm" className="w-full">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Photo
-              </Button>
+            <div className="flex flex-col items-center space-y-4 -mt-24 lg:-mt-32">
+              <div className="relative">
+                <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
+                  <AvatarImage
+                    src={profileImagePreview || profile?.profile_image}
+                    alt="User Avatar"
+                  />
+                  <AvatarFallback className="text-2xl">
+                    <User className="w-12 h-12" />
+                  </AvatarFallback>
+                </Avatar>
+                {isEditing && (
+                  <div className="absolute -bottom-2 -right-2">
+                    <input
+                      type="file"
+                      ref={profileFileInputRef}
+                      onChange={handleProfileImageChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="rounded-full w-10 h-10 p-0"
+                      onClick={() => profileFileInputRef.current?.click()}
+                    >
+                      <Camera className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {isEditing && profileImagePreview && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={removeProfileImage}
+                  className="w-full"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Remove Photo
+                </Button>
+              )}
+              {!isEditing && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Photo
+                </Button>
+              )}
             </div>
 
             {/* Info Section */}
             <div className="flex-1 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-bold">{user.name}</h2>
-                  <p className="text-muted-foreground text-lg">@{user.username}</p>
+                  {!isEditing ? (
+                    <>
+                      <h2 className="text-3xl font-bold">{profile?.name || profile?.username || "User"}</h2>
+                      <p className="text-muted-foreground text-lg">@{profile?.username || "user"}</p>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Display Name</Label>
+                        <Input
+                          id="name"
+                          value={editForm.name}
+                          onChange={(e) =>
+                            setEditForm(prev => ({ ...prev, name: e.target.value }))
+                          }
+                          placeholder="Your display name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Username</Label>
+                        <Input
+                          id="username"
+                          value={editForm.username}
+                          onChange={(e) =>
+                            setEditForm(prev => ({ ...prev, username: e.target.value }))
+                          }
+                          placeholder="Your username"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setIsEditing(!isEditing)}
+                    onClick={() => isEditing ? handleCancelEdit() : setIsEditing(true)}
                   >
                     <Edit className="w-4 h-4 mr-2" />
                     {isEditing ? "Cancel" : "Edit Profile"}
@@ -271,31 +495,40 @@ export default function Profile() {
                   <div className="text-muted-foreground">Blogs</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">{user.followers}</div>
+                  <div className="text-2xl font-bold text-foreground">{profile?.followersCount || 0}</div>
                   <div className="text-muted-foreground">Followers</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">{user.following}</div>
+                  <div className="text-2xl font-bold text-foreground">{profile?.followingCount || 0}</div>
                   <div className="text-muted-foreground">Following</div>
                 </div>
               </div>
 
               {!isEditing ? (
                 <div className="space-y-3">
-                  <p className="text-sm leading-relaxed">{user.bio}</p>
+                  <p className="text-sm leading-relaxed">{profile?.bio || "No bio yet."}</p>
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{user.location}</span>
-                    </div>
+                    {profile?.location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        <span>{profile.location}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      <span>Joined {user.joinedDate}</span>
+                      <span>Joined {formatJoinedDate(profile?.created_at || "")}</span>
                     </div>
-                    <a href={user.website} className="flex items-center gap-1 text-blue-600 hover:underline">
-                      <Globe className="w-4 h-4" />
-                      <span>{user.website}</span>
-                    </a>
+                    {profile?.personal_link && (
+                      <a
+                        href={profile.personal_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-blue-600 hover:underline"
+                      >
+                        <Globe className="w-4 h-4" />
+                        <span>{profile.personal_link}</span>
+                      </a>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -304,39 +537,40 @@ export default function Profile() {
                     <Label htmlFor="bio">Bio</Label>
                     <Textarea
                       id="bio"
-                      value={user.bio}
+                      value={editForm.bio}
                       onChange={(e) =>
-                        setUser((prev) => ({ ...prev, bio: e.target.value }))
+                        setEditForm(prev => ({ ...prev, bio: e.target.value }))
                       }
+                      placeholder="Tell us about yourself..."
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="personal_link">Personal Link</Label>
                     <Input
-                      id="location"
-                      value={user.location}
+                      id="personal_link"
+                      value={editForm.personal_link}
                       onChange={(e) =>
-                        setUser((prev) => ({ ...prev, location: e.target.value }))
+                        setEditForm(prev => ({ ...prev, personal_link: e.target.value }))
                       }
+                      placeholder="https://yourwebsite.com"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input
-                      id="website"
-                      value={user.website}
-                      onChange={(e) =>
-                        setUser((prev) => ({ ...prev, website: e.target.value }))
-                      }
-                    />
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveProfile}
+                      disabled={loading}
+                    >
+                      {loading ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => setIsEditing(false)}
-                    className="mt-2"
-                  >
-                    Save Changes
-                  </Button>
                 </div>
               )}
             </div>
@@ -344,8 +578,8 @@ export default function Profile() {
         </CardContent>
       </Card>
 
-      {/* Tabs Section - FIXED STRUCTURE */}
-      <Card className="border border-border shadow-lg">
+      {/* Tabs Section */}
+      {/* <Card className="border border-border shadow-lg">
         <CardHeader className="pb-4">
           <CardTitle>Your Content</CardTitle>
         </CardHeader>
@@ -382,11 +616,13 @@ export default function Profile() {
                       onClick={() => handleBlogClick(blog)}
                     >
                       <CardContent className="p-0">
-                        <div className="relative">
-                          <img
-                            src={blog.image}
+                        <div className="relative aspect-video">
+                          <Image
+                            src={blog.image || "/api/placeholder/400/250"}
                             alt={blog.title}
-                            className="w-full h-48 object-cover rounded-t-lg group-hover:opacity-90 transition-opacity"
+                            fill
+                            className="object-cover rounded-t-lg group-hover:opacity-90 transition-opacity"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="secondary" size="sm" className="h-8 w-8 p-0">
@@ -395,7 +631,7 @@ export default function Profile() {
                           </div>
                           <div className="absolute top-2 left-2">
                             <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
-                              {blog.readTime}
+                              {blog.readTime || "5 min read"}
                             </Badge>
                           </div>
                         </div>
@@ -404,22 +640,22 @@ export default function Profile() {
                             {blog.title}
                           </h3>
                           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {blog.excerpt}
+                            {blog.excerpt || blog.content?.substring(0, 100) + "..."}
                           </p>
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-1">
                                 <Heart className="w-3 h-3" />
-                                <span>{blog.likes}</span>
+                                <span>{blog.likes || 0}</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <MessageCircle className="w-3 h-3" />
-                                <span>{blog.comments}</span>
+                                <span>{blog.comments || 0}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-1">
                               <Eye className="w-3 h-3" />
-                              <span>{blog.views}</span>
+                              <span>{blog.views || 0}</span>
                             </div>
                           </div>
                         </div>
@@ -444,10 +680,12 @@ export default function Profile() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-2">
                             <h3 className="font-semibold text-lg">{blog.title}</h3>
-                            <p className="text-sm text-muted-foreground">{blog.excerpt}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {blog.excerpt || blog.content?.substring(0, 100) + "..."}
+                            </p>
                           </div>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleBlogClick(blog)}
                           >
@@ -469,7 +707,7 @@ export default function Profile() {
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Blog Modal */}
       <BlogModal />
